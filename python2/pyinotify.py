@@ -1017,6 +1017,29 @@ class PrintAllEvents(ProcessEvent):
         self._out.write('\n')
         self._out.flush()
 
+class RunPythonFiles(ProcessEvent):
+    """
+    Class for running python files
+    """
+    def my_init(self, out=None):
+        """
+        @param out: Where events will be written.
+        @type out: Object providing a valid file object interface.
+        """
+        if out is None:
+            out = sys.stdout
+        self._out = out
+
+    def process_default(self, event):
+        """
+        Runs python programs at the updated paths
+
+        @param event: Event to be processed. Can be of any type of events but
+                      IN_Q_OVERFLOW events (see method process_IN_Q_OVERFLOW).
+        @type event: Event instance
+        """
+        if event.pathname.endswith(".py"):
+            subprocess.call("python " + event.pathname, shell=True)
 
 class ChainIfTrue(ProcessEvent):
     """
@@ -2309,6 +2332,10 @@ def command_line():
     parser.add_option("-c", "--command", action="store",
                       dest="command",
                       help="Shell command to run upon event")
+    parser.add_option("-p", "--python", action="store_true",
+                      dest="python",
+                      help="run python copde upon event")
+
 
     (options, args) = parser.parse_args()
 
@@ -2332,9 +2359,10 @@ def command_line():
     # notifier instance and init
     if options.stats:
         notifier = Notifier(wm, default_proc_fun=Stats(), read_freq=5)
+    elif options.python:
+        notifier = Notifier(wm, default_proc_fun=RunPythonFiles())
     else:
         notifier = Notifier(wm, default_proc_fun=PrintAllEvents())
-
     # What mask to apply
     mask = 0
     if options.events_list:
