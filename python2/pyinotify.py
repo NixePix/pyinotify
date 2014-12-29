@@ -1029,6 +1029,7 @@ class RunPythonFiles(ProcessEvent):
         if out is None:
             out = sys.stdout
         self._out = out
+	self.show = False
 
     def process_default(self, event):
         """
@@ -1038,7 +1039,8 @@ class RunPythonFiles(ProcessEvent):
                       IN_Q_OVERFLOW events (see method process_IN_Q_OVERFLOW).
         @type event: Event instance
         """
-        if event.pathname.endswith(".py"):
+        self.show = not self.show
+        if event.pathname.endswith(".py") and self.show:
             subprocess.call("python " + event.pathname, shell=True)
 
 class ChainIfTrue(ProcessEvent):
